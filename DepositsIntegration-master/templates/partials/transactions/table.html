@@ -1,0 +1,114 @@
+{% include  'partials/transactions/popup.html' %}
+<div class="card ">
+<div class="container pt-5" xmlns="http://www.w3.org/1999/html">
+    <button onclick="scrollToTopOrBottom()" class="btn btn-outline-dark shadow" data-mdb-ripple-color="dark" style=" background:  #0B0B45; border-radius: 50%; position: fixed;right: 30px;top: 90%;transform: translateY(-50%);">
+        <i class="bi bi-arrow-down-up text-white h5 "></i></button>
+    <div class="row mb-3 pt-3">
+        <div class="col pt-1">
+            <form action="">
+                <div class="input-group w-75">
+                    <input type="text" class="form-control" id="search-input"
+                           placeholder="Search...">
+                    <button id="search-button" class="btn btn-outline-secondary bg-white border-start-0 border ms-n5"
+                            type="button">
+                        <i class="fa fa-search"></i>
+                    </button>
+                    <select class="form-control-sm border bg-white " style="width: 15%"
+                            id="filter-options">
+                        <option class="text-muted">Filters</option>
+                        <option value="amount">Amount</option>
+                        <option value="date">Date</option>
+                        <option value="invoice_id">Transaction Number</option>
+                        <option value="vendor_id">Vendor Id</option>
+                    </select>
+
+                </div>
+            </form>
+        </div>
+        <div class="col">
+            <div class="text-end ">
+                {% if request.path == '/dashboard' %}
+                    <!-- Render the "Process Transaction" button -->
+                    <button type="button" style="background-color: #121271; "
+                            class="btn mt-1 text-white text-left"
+                            data-bs-toggle="modal"
+                            data-bs-target="#post-transaction-modal" id="process-btn" disabled>Process Selected
+                        Transaction(s)
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+
+    <table class="table table-hover mt-5">
+        <thead style="font-family: 'Roboto Slab', serif">
+        <tr>
+            <th scope="col"></th>
+            <th scope="col">Date</th>
+            <th scope="col">Amount</th>
+            <th scope="col">Invoice Number</th>
+            <th scope="col">Reference</th>
+            <th scope="col">Beneficiary ID</th>
+            <th scope="col">Beneficiary Name</th>
+            <th scope="col">Trans Type</th>
+
+        </tr>
+
+        </thead>
+        <tbody id="table-body">
+
+
+        {% csrf_token %}
+        <div id="transaction-table">
+            {% if transaction_info and vendor_info %}
+
+                {% for transaction in transaction_info %}
+                    <tr id="{{ transaction.IDINVC }}">
+                        <td>
+                            <input type="checkbox" name="transaction" id="transaction-checkbox"
+                                   value="{{ transaction.IDINVC }}" disabled>
+                        </td>
+                        <td>{{ transaction.DATERMIT }}</td>
+                        <td>{{ transaction.AMTPAYM }}</td>
+                        <td id="invc">{{ transaction.IDINVC }}</td>
+                        <td>{{ transaction.REFERENCE }}</td>
+                        <td>{{ transaction.IDVEND }}</td>
+
+                        <td><select id="account_name" name="account_name"
+                                    class="form-select form-select-sm border-0"
+                                    style="width: 100px">
+                            {% for vendor in vendor_info %}
+                                {% if transaction.IDVEND == vendor.vendor_id %}
+                                    <option></option>
+                                    <option value="{{ vendor.account_name }}">{{ vendor.account_name }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select></td>
+                        <td><select id="transaction_type" name="transaction_type"
+                                    class="form-select form-select-sm border-0"
+                                    style="width: 100px">
+                            <option></option>
+                            <option value="IFT" >INTERNAL FUNDS TRANSFER</option>
+                            <option value="RTGS">RTGS</option>
+                            <option value="DDAC">DDAC</option>
+                            <option value="AIRTEL" disabled>AIRTEL</option>
+                            <option value="MTN" disabled>MTN</option>
+                            <option value="ZAMTEL" disabled>ZAMTEL</option>
+                        </select></td>
+                    </tr>
+                {% endfor %}
+
+            {% else %}
+                <tr>
+                    <td colspan="8">No transactions found</td>
+                </tr>
+            {% endif %}
+        </div>
+
+
+        </tbody>
+    </table>
+    {% include 'partials/transactions/home-page-paginator.html' %}
+</div>
+</div>

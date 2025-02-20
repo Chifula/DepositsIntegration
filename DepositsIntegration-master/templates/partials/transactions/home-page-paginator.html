@@ -1,0 +1,26 @@
+<div class="row paginator-wrap py-2" id="paginator"
+     data-num-pages="{{ transaction_info.paginator.num_pages }}">
+    <div class="col-md-6  text-md-left mb-4 mb-md-0" id="current">
+        <span id="page_navigator">Showing {{ transaction_info.number }} of {{ transaction_info.paginator.num_pages }} Pages</span>
+    </div>
+    <div class="col-md-6 text-end">
+        <div class="custom-pagination ml-auto">
+      <span>
+      {% if transaction_info.has_previous %}
+          <a href="?page={{ transaction_info.previous_page_number }}" id="previous" class="px-2 previous">Prev</a>
+          <a href="?page=1" class="px-2 first" id="first">First</a>
+      {% else %}
+          <a href="?page=0" id="previous" class="px-2 previous d-none">Prev</a>
+          <a href="?page=1" class="px-2 first d-none" id="first">First</a>
+      {% endif %}
+    </span>
+            {% if transaction_info.has_next %}
+                <span id="next_page">
+        <a class=" px-2 next" id="next" href="?page={{ transaction_info.next_page_number }}">Next</a>
+          <a href="?page={{ transaction_info.paginator.num_pages }}" class="px-2" id="last">Last </a>
+      </span>
+            {% endif %}
+
+        </div>
+    </div>
+</div>

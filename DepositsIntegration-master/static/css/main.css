@@ -1,0 +1,170 @@
+
+  @import url('https://fonts.googleapis.com/css2?family=Figtree:wght@500&family=Roboto+Slab&display=swap');
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    background-color: #fafafa;
+  }
+
+
+  .formbold-mb-3 {
+    margin-bottom: 15px;
+  }
+  .formbold-relative {
+    position: relative;
+  }
+  .formbold-opacity-0 {
+    opacity: 0;
+  }
+  .formbold-stroke-current {
+    stroke: currentColor;
+  }
+  #supportCheckbox:checked ~ div span {
+    opacity: 1;
+  }
+
+  .formbold-main-wrapper {
+    align-items: center;
+    justify-content: center;
+    padding: 48px;
+  }
+
+  .formbold-form-wrapper {
+    margin: 0 auto;
+    max-width: 570px;
+    width: 100%;
+    background: white;
+    padding: 40px;
+  }
+  .formbold-form-title {
+
+    margin-bottom: 30px;
+  }
+  .formbold-form-title h2 {
+    font-weight: 600;
+    font-size: 28px;
+    line-height: 34px;
+    text-align: center;
+  }
+  .formbold-form-title p {
+    font-size: 16px;
+    line-height: 24px;
+
+    margin-top: 12px;
+  }
+
+  .formbold-input-flex {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 15px;
+  }
+  .formbold-input-flex > div {
+    width: 50%;
+  }
+  .formbold-form-input {
+    text-align: center;
+    width: 100%;
+    padding: 13px 22px;
+    border-radius: 5px;
+    border: 1px solid #dde3ec;
+    background: #ffffff;
+    font-weight: 500;
+    font-size: 16px;
+
+    outline: none;
+    resize: none;
+  }
+  .formbold-form-input:focus {
+    border-color: #6a64f1;
+    box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.05);
+  }
+  .formbold-form-label {
+    font-size: 14px;
+    line-height: 24px;
+    display: block;
+    margin-bottom: 10px;
+  }
+
+.nav-link[aria-current="page"]{
+  text-decoration: underline;
+}
+  .formbold-btn {
+    font-size: 16px;
+    border-radius: 5px;
+    padding: 14px 25px;
+    border: none;
+    font-weight: 500;
+    background-color: #121271;
+    color: white;
+    margin-top: 25px;
+
+  }
+  .formbold-btn:hover {
+    box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.05);
+  }
+.formbold-btn2 {
+    font-size: 16px;
+    border-radius: 5px;
+    padding: 14px 25px;
+    border: none;
+    font-weight: 500;
+    background-color: #121271;
+    color: white;
+    cursor: pointer;
+    margin-top: 25px;
+  margin-left:207px;
+  text-decoration: none;
+
+
+  }
+  .formbold-btn2:hover {
+    box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.05);
+  }
+.or{
+  display: flex;
+  flex-direction: row;
+  margin:50px;
+
+      }
+.or:before,
+.or:after {
+         content: "";
+         flex: 1 1;
+         border-bottom: 5px solid #07074d ;
+
+         margin: auto;
+      }
+.custom-pagination a {
+    width: auto;
+    height: 30px;
+    line-height: 30px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 4px;
+}
+  .custom-pagination a.active, .custom-pagination a:hover {
+    background: #121271;
+    color: #fff;
+    border-color:#121271; }
+.spinner-wrapper{
+  background-color: #ffffff;
+  position: fixed;
+  top: 0;
+  left:0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  opacity: 0.8;
+  align-items: center;
+  transition: all 0.2s;
+}
+.spinner-border{
+  height: 60px;
+  width: 60px;
+}

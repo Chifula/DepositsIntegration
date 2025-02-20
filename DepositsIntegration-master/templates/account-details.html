@@ -1,0 +1,120 @@
+{% extends 'base2.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% block content %}
+
+    <div class="formbold-main-wrapper">
+        {% if messages %}
+            {% for message in messages %}
+                <p class="text-muted text-center"> {{ message }} </p>
+            {% endfor %}
+        {% endif %}
+
+        <div class="formbold-form-wrapper">
+            <form action="{% url 'webapp:upload-bank-details' %}" method="POST" id="bankDetailsForm">
+                {% csrf_token %}
+                <div class="formbold-form-title">
+                    <h2 class="">Add Vendor Bank Details</h2>
+                </div>
+                <div class="formbold-input-flex">
+                    <div id="vid" {% if form.vendor_id.errors %} class="error" {% endif %} hx-select="#vid"
+                         hx-post="{% url 'webapp:upload-bank-details' %}"
+                         hx-trigger="blur from:find input" hx-taget="#vid">
+                        <label class="formbold-form-label"> {{ form.vendor_id.label }}</label>
+                        {% render_field form.vendor_id type="text" name="vendor_id" id="vendorid" class="formbold-form-input" %}
+                        {{ form.vendor_id.errors }}
+                    </div>
+                    <div id="vname" {% if form.account_name.errors %} class="error" {% endif %} hx-select="#accountname"
+                         hx-post="{% url 'webapp:upload-bank-details' %}"
+                         hx-trigger="blur from:find input" hx-taget="#accountname">
+                        <label class="formbold-form-label"> {{ form.account_name.label }}</label>
+                        {% render_field form.account_name type="text" name="account_name" id="accountname" class="formbold-form-input" %}
+                        {{ form.account_name.errors }}
+                    </div>
+
+                </div>
+
+                <div class="formbold-input-flex">
+                    <div id="email" hx-select="#email"
+                         hx-post="{% url 'webapp:upload-bank-details' %}"
+                         hx-trigger="blur from:find input" hx-taget="#email">
+                        <label class="formbold-form-label">{{ form.vendor_email.label }} </label>
+                        {% render_field form.vendor_email type="text" name="vendor_email" id="vendoremail" class="formbold-form-input" %}
+                        {{ form.vendor_email.errors }}
+                    </div>
+                    <div id="vmno" hx-select="#vmno" hx-post="{% url 'webapp:upload-bank-details' %}"
+                         hx-trigger="blur from:find input" hx-taget="#vmno">
+                        <label class="formbold-form-label">{{ form.vendor_mobile_number.label }}</label>
+                        {% render_field form.vendor_mobile_number type="text" name="vendor_mobile_no" id="vendorphone" class="formbold-form-input" %}
+                        {{ form.vendor_mobile_number.errors }}
+                    </div>
+                </div>
+
+                <div class="formbold-input-flex" id="bank_dropdown">
+                    <div>
+                        <label class="formbold-form-label">Bank Name</label>
+                        <select id="bankNameSelect" name="bank_name" class="form-select">
+                            <option></option>
+                            <option value="ZICB">ZICB</option>
+                        </select>
+                    </div>
+                    <div id="acc_if_zicb" class="d-none" {% if form.account_no.errors %} class="error" {% endif %}>
+                        <label class="formbold-form-label">{{ form.account_no.label }} </label>
+                        {% render_field form.account_no type="text" name="account_no" id="accountno" class="formbold-form-input" %}
+                        {{ form.account_no.errors }}
+                    </div>
+                    <div id="branchNameSelectDiv" class="d-none">
+                        <label class="formbold-form-label">Branch Name</label>
+                        <select id="branchDesc" name="branch" class="form-select">
+                        </select>
+                    </div>
+                </div>
+                <div class="formbold-input-flex d-none" id="zicb_bank_details">
+                    <div>
+                        <label class="formbold-form-label">Branch Name</label>
+                        <input class="formbold-form-input" id="zicb_branch_name" name="branch" readonly>
+                    </div>
+                    <div>
+                        <label class="formbold-form-label">Sort Code</label>
+                        <input class="formbold-form-input" type="text" name="sort_code" maxlength="255" required id="zicb_sort_code">
+                    </div>
+                </div>
+               <!--- <div class="formbold-input-flex d-none" id="sortCodeDiv">
+                    <div>
+                        <label class="formbold-form-label">Sort Code</label>
+                        <input class="formbold-form-input"  name="sort_code" readonly type="text" id="sortcode">
+                    </div>
+                    <div id="acc" {% if form.account_no.errors %} class="error" {% endif %}>
+                        <label class="formbold-form-label">{{ form.account_no.label }} </label>
+                        {% render_field form.account_no type="text" name="account_no" id="account_no" class="formbold-form-input" %}
+                        {{ form.account_no.errors }}
+                    </div>
+                </div>-->
+
+                <button class="formbold-btn" id="submit" disabled>Save
+                </button>
+            </form>
+            <!--- <p class="or"></p>
+            <form action="{% url 'webapp:upload-bank-details-csv' %}" enctype="multipart/form-data" method="POST">
+                {% csrf_token %}
+                <div class="formbold-mb-3">
+                    <label for="csvupload" class="formbold-form-label">
+                        Upload Bank Details as Excel
+                    </label>
+                    <input
+                            type="file"
+                            name="csvupload"
+                            id="csvupload"
+                            class="formbold-form-input"
+                    />
+                </div>
+                <button class="formbold-btn">Upload</button>
+                <a href="{% url 'webapp:bank-details-template' %}" class="formbold-btn2">Export Template</a>
+            </form>-->
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra-scripts %}
+    <script src="{% static 'js/processBankDetails.js' %}"></script>
+{% endblock %}

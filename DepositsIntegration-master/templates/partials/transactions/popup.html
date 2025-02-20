@@ -1,0 +1,43 @@
+<div class="modal fade" id="post-transaction-modal" tabindex="-1" role="dialog"
+     aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+        <div class="modal-content p-2">
+            <div class="modal-header border-0 ">
+                <h5 class="modal-title" id="exampleModalLongTitle" style="font-family: 'Roboto Slab',serif;">Selected
+                    Transactions</h5>
+                <button type="button" class="close bg-transparent border-0" data-bs-dismiss="modal" aria-label="Close">
+                    <span><i class="bi bi-x-lg"></i></span>
+                </button>
+            </div>
+            <div class="modal-body p-1">
+                <table class="table table-hover mt-3">
+                    <thead>
+                    <tr>
+                        <th scope="col">Date</th>
+                        <th scope="col">Amount</th>
+                        <th scope="col">Invoice Number</th>
+                        <th scope="col">Remarks</th>
+                        <th scope="col">Beneficiary ID</th>
+                        <th scope="col">Beneficiary Name</th>
+                        <th scope="col">Trans Type</th>
+                        <th scope="col">Beneficiary Account</th>
+                        <th scope="col">Sort Code</th>
+                        <th scope="col">bicCode</th>
+
+                    </tr>
+                    </thead>
+                    <tbody id="modal-table-body">
+                    <!--Transactions to be posted will be dynamically added here-->
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">Close
+                </button>
+                <button type="button" id="modal-submit-btn" class="btn text-white" style="background-color: #121271">
+                    Post Transactions
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
