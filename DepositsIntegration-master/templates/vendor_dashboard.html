@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vendor Dashboard</title>
+</head>
+<body>
+    <h1>Vendor Dashboard</h1>
+    <p>Total Sales: {{ total_sales }}</p>
+    <p>Total Amount: {{ total_amount }}</p>
+    
+    <h2>Sales Data</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Invoice ID</th>
+                <th>Vendor ID</th>
+                <th>Vendor Name</th>
+                <th>Transaction Date</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Transaction Type</th>
+                <th>Processed By</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for deposit in sales_data %}
+            <tr>
+                <td>{{ deposit.invoiceid }}</td>
+                <td>{{ deposit.vendorid }}</td>
+                <td>{{ deposit.vendorname }}</td>
+                <td>{{ deposit.transaction_date }}</td>
+                <td>{{ deposit.amount }}</td>
+                <td>{{ deposit.status }}</td>
+                <td>{{ deposit.transaction_type }}</td>
+                <td>{{ deposit.processed_by }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

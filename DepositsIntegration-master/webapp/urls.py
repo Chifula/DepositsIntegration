@@ -2,6 +2,7 @@ from django.conf.urls.static import static
 from django.urls import path, include
 from django.views.generic import TemplateView
 from django.contrib import admin
+from .views import vendor_dashboard
 
 from . import views
 
@@ -14,7 +15,7 @@ urlpatterns = [
     path('account_number/',views.checkAccNumber,name='check-account-number'),
     path('bank_details/upload/verify_account/zicb/',views.zicb_customer_account_number_check),
     path('bank_details/upload/verify_account/other/', views.other_bank_account_number_check),
-    path('enter_otp/',views.enterOTP, name = 'enter-otp'),
+    #path('enter_otp/',views.enterOTP, name = 'enter-otp'),
     path('forgot_password',views.forgotPassword, name = 'forgot-password'),
     path('role/', views.checkUserRole),
     path('account_details/', views.vendor_account_details),
@@ -31,5 +32,5 @@ urlpatterns = [
     path('search-invoices/', views.search_invoice_id, name='search-invoices'),
     path('bank_details/upload/loadBanks/',views.loadBankList),
     path('bank_details/delete/<str:acc_no>/', views.delete_vendor, name='delete'),
-
+    path('dashboard/', vendor_dashboard, name='vendor_dashboard'),
 ]
