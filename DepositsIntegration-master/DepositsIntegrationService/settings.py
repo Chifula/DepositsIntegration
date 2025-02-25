@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'webapp.apps.WebappConfig',
     'widget_tweaks',
     'django_htmx',
+    
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
@@ -53,6 +54,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "django_htmx.middleware.HtmxMiddleware",
     'corsheaders.middleware.CorsMiddleware',
+     # Other middleware...
+    'django_plotly_dash.middleware.BaseMiddleware',
+    'django_plotly_dash.middleware.ExternalRedirectionMiddleware',
+
 ]
 
 #SESSION_COOKIE_AGE = 1200  # 5 minutes
@@ -85,6 +90,17 @@ TEMPLATES = [
         },
     },
 ]
+
+# Add Django Channels configuration
+ASGI_APPLICATION = 'DepositsIntegrationService.routing.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 WSGI_APPLICATION = 'DepositsIntegrationService.wsgi.application'
 
