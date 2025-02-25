@@ -66,6 +66,7 @@ AUTH_USER_MODEL = 'webapp.Users'
 
 AUTHENTICATION_BACKENDS = [
     'webapp.myauthBackend.UserAuthBackend',
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
 TEMPLATES = [
