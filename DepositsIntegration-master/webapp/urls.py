@@ -20,6 +20,7 @@ urlpatterns = [
     path('role/', views.checkUserRole),
     path('account_details/', views.vendor_account_details),
     path('dashboard',views.homepage, name='homepage'),
+    path('vendor-dashboard/', vendor_dashboard, name='vendor_dashboard'),
     path('bank_details/edit/<str:acc_id>/',views.editBankUploadViaForm,name='edit-bank-details'),
     path('bank_details/upload/',views.bankUploadViaForm, name='upload-bank-details'),
     path('bank_details/template/',views.bankUploadCSVTemplate,name='bank-details-template'),
@@ -32,5 +33,5 @@ urlpatterns = [
     path('search-invoices/', views.search_invoice_id, name='search-invoices'),
     path('bank_details/upload/loadBanks/',views.loadBankList),
     path('bank_details/delete/<str:acc_no>/', views.delete_vendor, name='delete'),
-    path('dashboard/', vendor_dashboard, name='vendor_dashboard'),
+    path('vendor-dashboard/', vendor_dashboard, name='vendor_dashboard'),
 ]

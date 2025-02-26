@@ -1,41 +1,62 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Vendor Dashboard</title>
-</head>
-<body>
-    <h1>Vendor Dashboard</h1>
-    <p>Total Sales: {{ total_sales }}</p>
-    <p>Total Amount: {{ total_amount }}</p>
+{% extends 'base2.html' %}
+{% load static %}
+
+{% block content %}
+<div class="card p-4">
+    <h1 class="text-primary">Vendor Dashboard</h1>
+    <p class="fw-bold">Total Sales: {{ total_sales }}</p>
+    <p class="fw-bold">Total Amount: {{ total_amount }}</p>
     
-    <h2>Sales Data</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Invoice ID</th>
-                <th>Vendor ID</th>
-                <th>Vendor Name</th>
-                <th>Transaction Date</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Transaction Type</th>
-                <th>Processed By</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for deposit in sales_data %}
-            <tr>
-                <td>{{ deposit.invoiceid }}</td>
-                <td>{{ deposit.vendorid }}</td>
-                <td>{{ deposit.vendorname }}</td>
-                <td>{{ deposit.transaction_date }}</td>
-                <td>{{ deposit.amount }}</td>
-                <td>{{ deposit.status }}</td>
-                <td>{{ deposit.transaction_type }}</td>
-                <td>{{ deposit.processed_by }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</body>
-</html>
+    <h2 class="mt-4">Sales Trends</h2>
+    <div>{{ sales_trends_html|safe }}</div>
+    
+    <h2 class="mt-4">Sales Distribution by Status</h2>
+    <div>{{ sales_status_pie_html|safe }}</div>
+    
+    <h2 class="mt-4">Sales Distribution by Transaction Type</h2>
+    <div>{{ sales_type_pie_html|safe }}</div>
+    
+    <h2 class="mt-4">Sales Data</h2>
+    <div class="table-responsive">
+        <table class="table table-hover mt-3">
+            <thead class="table-dark">
+                <tr>
+                    <th>Invoice ID</th>
+                    <th>Vendor ID</th>
+                    <th>Vendor Name</th>
+                    <th>Transaction Date</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Transaction Type</th>
+                    <th>Processed By</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for deposit in sales_data %}
+                <tr>
+                    <td>{{ deposit.invoiceid }}</td>
+                    <td>{{ deposit.vendorid }}</td>
+                    <td>{{ deposit.vendorname }}</td>
+                    <td>{{ deposit.transaction_date }}</td>
+                    <td>{{ deposit.amount }}</td>
+                    <td>{{ deposit.status }}</td>
+                    <td>{{ deposit.transaction_type }}</td>
+                    <td>{{ deposit.processed_by }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center">No sales data available</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    {% include 'partials/transactions/home-page-paginator.html' %}
+</div>
+
+<button onclick="scrollToTopOrBottom()" class="btn btn-outline-dark shadow" style="background: #0B0B45; border-radius: 50%; position: fixed; right: 30px; bottom: 20px;">
+    <i class="bi bi-arrow-down-up text-white h5"></i>
+</button>
+
+{% endblock %}

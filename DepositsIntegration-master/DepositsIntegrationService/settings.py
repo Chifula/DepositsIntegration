@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     'webapp.apps.WebappConfig',
     'widget_tweaks',
     'django_htmx',
-    
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True

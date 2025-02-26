@@ -22,6 +22,7 @@ from .services import *
 from .models import ProcessedDeposits, BankDetails, Users
 import requests
 import pandas as pd
+import plotly.express as px
 
 URL = "https://41.175.13.198:7664/api/json/commercials/zicb/banking"
 IFT_KEY = "wmdTRHHpCAqgpCMMBfQUGZzpvOaOWmIFuNElwQBeuyyeRfHlRadnHSbMWimMZfPFhKIQEEgFPjkeJgHRwbTErvAZRlLJrVNhqSQRknxXpZhlsdzAuTTZtPZHFJOsvWtIRreHzFjPSEkwmGNdsOCMYipktXBeMkYEoWwFobzrUJRVJXeBWBveZYqirlbVlcwRXDdRJSIoFUMtxjFcbjFvxEKlmVzdjIpGWrqegWDOZQMOqLwSXsdBYjhkvcbQERolchgYpZbrmYRSMUFIHfiSBESXyVIeUAcXAhIcQAAQjWOVoZhuURxJNKRFUNiSMLOnIDwxaesFAwJPuZHbbKeMDxXzRQWaGCoaqKVjZshMpHVcEcncAZeKiioptRnpLAvmGHlrAXxSkaHgpWaqitRvYGOWDDMIxzsccEHpOfwsAfyZpCJyPRcpwiuCUTRRyOspSpWvFVIrHZxnzSizXkkVZtlhPeSYBrxplbhoAFYAPmxaZkAsNjQphlcfwmaZKzWreSkBpbGKrCcllzDcyibtGnbSlqqFZGIWFpokiyKVmcUaHDitetRwNMdksycsCsGTTiNysYVbeqLPFuGPTdrzfsMZZRQkAHqmyuYOMxQeEvpXibFylxPaoeaTXVWAVozTfdSIuufLgoADbvtDTpvpDhMiMcmPIIICEyeHpjyLGGFwqhBeSkVvYuQLSnHnoMlMZwCKRXzCXVjkcxEYCYflOdImrjPlMYzRNQjaCaMhhpBJTWoRDpQGaIhIQcsVAyHMtYIlRwEhGpnXZTFxshsxyDTBHPxaSKoPuHejMLQYIXyiMLtPfFJfZXYNAXfDXstXEBIHgqvYZAlogYbMPVIkDCceNNuaxkrRTAtcZGESKsRuPGOrukdHkdGaAGsbTSAgLXZmCkowppFOWZjgIJPiySyeeQOIQOfmcEyPWpByRBUxGmCnuOFbmbXEUBuuROdJsCKhfuaGIavHBUBdUuuhwuwEUOXYYwGmTEXXmVXRZrJLsDruGoYpYmTAcciUWMssQQRDEPhhuCEAkUZlfYoNkqUadbgEEzvJTQTkVPbeFnsoCPWKBEYeAqiwYpunQaLiUBpTMEuLGicQRgNnLvxbvJbKLYTxr"
@@ -52,97 +53,62 @@ def loadBankList(request):
 def UserLogin(request):
     if request.method == 'POST':
         try:
-            username = request.POST["username"]
-            cif = request.POST["cif"]
-            password = request.POST["password"]
-            print(password)
+            username = request.POST.get("username")
+            cif = request.POST.get("cif")
+            password = request.POST.get("password")
+            
+            print(password)  # Debugging
+
             user = authenticate(request, username=username, password=password,
                                 backend='webapp.myauthBackend.UserAuthBackend')
             if user is not None:
-                if user.role == '001':
-                    login(request, user)
-                    return redirect('webapp:bank-details')
-                elif user.role == '002':
-                    login(request, user)
-
-                    json = {
-                        "service": "CORE_BANKING_LOGIN",
-                        "request": {
-                            "username": f"{username}",
-                            "cif": f"{cif}",
-                            "password": f"{password}",
-                            "channelType": "CORPORATE"
-                        }
-                    }
-
-                    resp = requests.post(url=URL, headers=transaction_headers, json=json, verify=False)
-                    resp = resp.json()
-                    if resp['response']['otpEnable']:
-                        cache.set('session_token', f"{resp['response']['session_token']}", timeout=600)
-                        json = {
-                            "service": "CORE_BANKING_GENERATE_OTP",
-                            "request": {
-                                "userName": f"{resp['response']['userName']}",
-                                "session_token": f"{resp['response']['session_token']}"
-                            }
-                        }
-                        response = requests.post(url=URL, headers=transaction_headers, json=json, verify=False)
-                        response = response.json()
-                        print(response)
-                        if response['response']['otpEnable']:
-                            # log_hist = UserLoginHistory(username=username, ipaddress=get_ip_address(request),
-                            # timestamp=datetime.datetime.now())
-                            # log_hist.save()
-                            return redirect('webapp:enter-otp', )
-                    else:
-                        messages.error(request, message=resp['response']['message'])
-                        return redirect("webapp:login")
+                login(request, user)
+                return redirect('webapp:homepage')
             else:
-                messages.error(request, message="Username/Passowrd not registered")
+                messages.error(request, message="Username/Password not registered")
                 return redirect("webapp:login")
         except Exception as e:
             messages.error(request, message="An error occurred. Please try again.")
-            print(str(e))
+            print(e)
             return redirect("webapp:login")
 
-    else:
-        return render(request, 'index.html')
+    return render(request, "index.html")  # Ensure GET requests return a response
 
 
-@user_is_approver
-def enterOTP(request):
-    if request.method == 'POST':
-        try:
-            otp = request.POST["otp"]
-            json = {
-                "service": "CORE_BANKING_VERIFY_OTP",
-                "request": {
-                    "userName": f"{request.user.username}",
-                    "otp": f"{otp}",
-                    "session_token": f"{cache.get('session_token')}"
-                }
-            }
-            cache.set(request.user.username, otp, timeout=600)  # set the OTP with a timeout of 300 seconds
-            resp = requests.post(url=URL, headers=transaction_headers, json=json, verify=False)
-            resp = resp.json()
-            print(resp)
-            if resp['response']['message'] == "Success":
-                if request.user.role == '001':
-                    return redirect('webapp:bank-details')
-                elif request.user.role == '002':
-                    return redirect('webapp:homepage')
-                else:
-                    messages.error(request, message="User Role Unknown")
-                    return redirect('webapp:login')
-            else:
-                messages.error(request, message='Login Failed.Invalid OTP')
-                return redirect("webapp:login")
-        except Exception as e:
-            messages.error(request, message="An error occurred. Please try again.")
-            print(str(e))
-            return redirect("webapp:login")
+# @user_is_approver
+# def enterOTP(request):
+#     if request.method == 'POST':
+#         try:
+#             otp = request.POST["otp"]
+#             json = {
+#                 "service": "CORE_BANKING_VERIFY_OTP",
+#                 "request": {
+#                     "userName": f"{request.user.username}",
+#                     "otp": f"{otp}",
+#                     "session_token": f"{cache.get('session_token')}"
+#                 }
+#             }
+#             cache.set(request.user.username, otp, timeout=600)  # set the OTP with a timeout of 300 seconds
+#             resp = requests.post(url=URL, headers=transaction_headers, json=json, verify=False)
+#             resp = resp.json()
+#             print(resp)
+#             if resp['response']['message'] == "Success":
+#                 if request.user.role == '001':
+#                     return redirect('webapp:bank-details')
+#                 elif request.user.role == '002':
+#                     return redirect('webapp:homepage')
+#                 else:
+#                     messages.error(request, message="User Role Unknown")
+#                     return redirect('webapp:login')
+#             else:
+#                 messages.error(request, message='Login Failed.Invalid OTP')
+#                 return redirect("webapp:login")
+#         except Exception as e:
+#             messages.error(request, message="An error occurred. Please try again.")
+#             print(str(e))
+#             return redirect("webapp:login")
 
-    return render(request, 'validate-otp.html')
+#     return render(request, 'validate-otp.html')
 
 
 def checkUserRole(request):
@@ -334,6 +300,41 @@ def bankUploadViaForm(request):
     except Exception as e:
         print(e)
 
+
+def vendor_dashboard(request):
+    # Fetch sales data and other information for vendors
+    sales_data = ProcessedDeposits.objects.all()
+    
+    # Convert sales data to a DataFrame
+    sales_df = pd.DataFrame(list(sales_data.values('vendorid', 'amount', 'status', 'transaction_type')))
+    sales_df['amount'] = sales_df['amount'].astype(float)
+    
+    # Calculate sales trends and other metrics
+    total_sales = sales_df['vendorid'].nunique()
+    total_amount = sales_df['amount'].sum()
+    
+    # Create a bar chart for sales trends
+    sales_trends_fig = px.bar(sales_df, x='vendorid', y='amount', title='Sales Trends by Vendor')
+    sales_trends_html = sales_trends_fig.to_html(full_html=False)
+    
+    # Create a pie chart for sales distribution by status
+    sales_status_pie_fig = px.pie(sales_df, names='status', values='amount', title='Sales Distribution by Status')
+    sales_status_pie_html = sales_status_pie_fig.to_html(full_html=False)
+    
+    # Create a pie chart for sales distribution by transaction type
+    sales_type_pie_fig = px.pie(sales_df, names='transaction_type', values='amount', title='Sales Distribution by Transaction Type')
+    sales_type_pie_html = sales_type_pie_fig.to_html(full_html=False)
+    
+    context = {
+        'total_sales': total_sales,
+        'total_amount': total_amount,
+        'sales_data': sales_data,
+        'sales_trends_html': sales_trends_html,
+        'sales_status_pie_html': sales_status_pie_html,
+        'sales_type_pie_html': sales_type_pie_html,
+    }
+    
+    return render(request, 'vendor_dashboard.html', context)
 
 def editBankUploadViaForm(request, acc_id):
     vendor = BankDetails.objects.filter(account_no=acc_id).first()
