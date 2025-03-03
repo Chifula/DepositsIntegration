@@ -60,3 +60,37 @@ class ProcessedDeposits(models.Model):
     transaction_type = models.CharField(max_length=255)
     timestamp = models.DateTimeField(auto_now=True)
     processed_by = models.CharField(max_length=255)
+
+class TransactionSummary(models.Model):
+    transaction_id = models.CharField(max_length=50, primary_key=True)
+    payment_transaction_date = models.DateField()  # Renamed from transaction_date
+    amount = models.DecimalField(max_digits=15, decimal_places=2)
+    payment_method = models.CharField(max_length=50)
+    status = models.CharField(max_length=50)
+    customer_name = models.CharField(max_length=100)
+    description = models.TextField()
+    processed_amount = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
+    processed_transaction_date = models.DateField(blank=True, null=True)  # Renamed from transaction_date
+
+    class Meta:
+        managed = False  # Prevents Django from creating migrations for the view
+        db_table = "transaction_summary"  # Matches the SQL view name
+
+class PaymentSummary(models.Model):
+    transaction_id = models.CharField(max_length=50, primary_key=True)
+    transaction_date = models.DateField()  # Renamed from transaction_date
+    amount = models.DecimalField(max_digits=15, decimal_places=2)
+    payment_method = models.CharField(max_length=50)
+    payment_status = models.CharField(max_length=50)
+    customer_name = models.CharField(max_length=100)
+    description = models.TextField()
+    processed_amount = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
+    processed_t_date = models.DateField(blank=True, null=True)  # Renamed from transaction_date        
+    vendorname = models.CharField(max_length=100, null=True, blank=True)
+    transaction_type = models.CharField(max_length=50, null=True, blank=True)
+    class Meta:
+         managed = False  # Prevents Django from creating migrations for the view
+         db_table = "payment_summary"  # Matches the SQL view name
+
+    def __str__(self):
+        return f"Transaction {self.transaction_id} - {self.amount}"

@@ -13,6 +13,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from sqlalchemy import not_
 from sqlalchemy.orm import class_mapper
+from sqlalchemy import create_engine
 
 from .forms import BankDetailsForm
 from .helpers import *
@@ -20,9 +21,16 @@ from .myauthBackend import UserAuthBackend
 from .permissions import user_is_approver, user_is_support_staff
 from .services import *
 from .models import ProcessedDeposits, BankDetails, Users
+from .models import TransactionSummary
+from .models import PaymentSummary
 import requests
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
+import os
+import pandas as pd
+from django.db import connection
+
 
 URL = "https://41.175.13.198:7664/api/json/commercials/zicb/banking"
 IFT_KEY = "wmdTRHHpCAqgpCMMBfQUGZzpvOaOWmIFuNElwQBeuyyeRfHlRadnHSbMWimMZfPFhKIQEEgFPjkeJgHRwbTErvAZRlLJrVNhqSQRknxXpZhlsdzAuTTZtPZHFJOsvWtIRreHzFjPSEkwmGNdsOCMYipktXBeMkYEoWwFobzrUJRVJXeBWBveZYqirlbVlcwRXDdRJSIoFUMtxjFcbjFvxEKlmVzdjIpGWrqegWDOZQMOqLwSXsdBYjhkvcbQERolchgYpZbrmYRSMUFIHfiSBESXyVIeUAcXAhIcQAAQjWOVoZhuURxJNKRFUNiSMLOnIDwxaesFAwJPuZHbbKeMDxXzRQWaGCoaqKVjZshMpHVcEcncAZeKiioptRnpLAvmGHlrAXxSkaHgpWaqitRvYGOWDDMIxzsccEHpOfwsAfyZpCJyPRcpwiuCUTRRyOspSpWvFVIrHZxnzSizXkkVZtlhPeSYBrxplbhoAFYAPmxaZkAsNjQphlcfwmaZKzWreSkBpbGKrCcllzDcyibtGnbSlqqFZGIWFpokiyKVmcUaHDitetRwNMdksycsCsGTTiNysYVbeqLPFuGPTdrzfsMZZRQkAHqmyuYOMxQeEvpXibFylxPaoeaTXVWAVozTfdSIuufLgoADbvtDTpvpDhMiMcmPIIICEyeHpjyLGGFwqhBeSkVvYuQLSnHnoMlMZwCKRXzCXVjkcxEYCYflOdImrjPlMYzRNQjaCaMhhpBJTWoRDpQGaIhIQcsVAyHMtYIlRwEhGpnXZTFxshsxyDTBHPxaSKoPuHejMLQYIXyiMLtPfFJfZXYNAXfDXstXEBIHgqvYZAlogYbMPVIkDCceNNuaxkrRTAtcZGESKsRuPGOrukdHkdGaAGsbTSAgLXZmCkowppFOWZjgIJPiySyeeQOIQOfmcEyPWpByRBUxGmCnuOFbmbXEUBuuROdJsCKhfuaGIavHBUBdUuuhwuwEUOXYYwGmTEXXmVXRZrJLsDruGoYpYmTAcciUWMssQQRDEPhhuCEAkUZlfYoNkqUadbgEEzvJTQTkVPbeFnsoCPWKBEYeAqiwYpunQaLiUBpTMEuLGicQRgNnLvxbvJbKLYTxr"
@@ -54,7 +62,6 @@ def UserLogin(request):
     if request.method == 'POST':
         try:
             username = request.POST.get("username")
-            cif = request.POST.get("cif")
             password = request.POST.get("password")
             
             print(password)  # Debugging
@@ -63,17 +70,24 @@ def UserLogin(request):
                                 backend='webapp.myauthBackend.UserAuthBackend')
             if user is not None:
                 login(request, user)
-                return redirect('webapp:homepage')
+                
+                # Redirect based on user role
+                if user.role == '001':
+                    return redirect('webapp:bank-details')
+                elif user.role == '002':
+                    return redirect('webapp:homepage')
+                else:
+                    messages.error(request, "User Role Unknown")
+                    return redirect("webapp:login")
             else:
-                messages.error(request, message="Username/Password not registered")
+                messages.error(request, "Username/Password not registered")
                 return redirect("webapp:login")
         except Exception as e:
-            messages.error(request, message="An error occurred. Please try again.")
+            messages.error(request, "An error occurred. Please try again.")
             print(e)
             return redirect("webapp:login")
 
     return render(request, "index.html")  # Ensure GET requests return a response
-
 
 # @user_is_approver
 # def enterOTP(request):
@@ -223,11 +237,36 @@ def get_search_results(request):
                 'vendor_info': vendor_info,
                 'page_number': page_number
             }
+            
 
             return render(request, 'homepage.html', context)
 
     except Exception as e:
         return JsonResponse({'message': f'An error occurred while processing your request {e}'}, status=500)
+
+
+def transaction_summary(request):
+    transactions = TransactionSummary.objects.all()  # Fetch all transaction summary data
+    return render(request, "transactions.html", {"transactions": transactions})
+
+def payment_summary(request):
+    transactions = PaymentSummary.objects.all()  # Fetch all transaction summary data
+    return render(request, "payments.html", {"transactions": transactions})
+
+# Function to fetch data from the database
+def fetch_data():
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT AMTPAYM, PAYMCODE, DATERMIT, IDBANK, IDVEND, TEXTRMIT
+            FROM [INFDAT].[dbo].[APPYM]
+        """)
+        # Get column names
+        columns = [col[0] for col in cursor.description]
+        # Fetch all rows
+        rows = cursor.fetchall()
+        # Convert to DataFrame
+        data = pd.DataFrame(rows, columns=columns)
+    return data
 
 
 def format_response_data(page_number, transaction_info, vendor_info):
@@ -304,36 +343,72 @@ def bankUploadViaForm(request):
 def vendor_dashboard(request):
     # Fetch sales data and other information for vendors
     sales_data = ProcessedDeposits.objects.all()
-    
+    payment_data = PaymentSummary.objects.all()
+
+    # Convert payment data to a DataFrame
+    pay_df = pd.DataFrame(list(payment_data.values(
+        'transaction_id', 'amount', 'payment_method', 'payment_status', 'transaction_date', 'customer_name', 'description',
+        'processed_amount', 'processed_t_date', 'vendorname', 'transaction_type'
+    )))
+    pay_df['amount'] = pay_df['amount'].astype(float)
+    pay_df['transaction_date'] = pd.to_datetime(pay_df['transaction_date'])
+
     # Convert sales data to a DataFrame
-    sales_df = pd.DataFrame(list(sales_data.values('vendorid', 'amount', 'status', 'transaction_type')))
+    sales_df = pd.DataFrame(list(sales_data.values('vendorid', 'amount', 'status', 'transaction_type', 'transaction_date')))
     sales_df['amount'] = sales_df['amount'].astype(float)
-    
+
     # Calculate sales trends and other metrics
     total_sales = sales_df['vendorid'].nunique()
     total_amount = sales_df['amount'].sum()
-    
-    # Create a bar chart for sales trends
-    sales_trends_fig = px.bar(sales_df, x='vendorid', y='amount', title='Sales Trends by Vendor')
-    sales_trends_html = sales_trends_fig.to_html(full_html=False)
-    
-    # Create a pie chart for sales distribution by status
-    sales_status_pie_fig = px.pie(sales_df, names='status', values='amount', title='Sales Distribution by Status')
-    sales_status_pie_html = sales_status_pie_fig.to_html(full_html=False)
-    
-    # Create a pie chart for sales distribution by transaction type
-    sales_type_pie_fig = px.pie(sales_df, names='transaction_type', values='amount', title='Sales Distribution by Transaction Type')
-    sales_type_pie_html = sales_type_pie_fig.to_html(full_html=False)
-    
+
+    # Prepare data for charts
+    sales_trends_labels = sales_df['vendorid'].tolist()
+    sales_trends_data = sales_df['amount'].tolist()
+
+    sales_status_labels = sales_df['status'].unique().tolist()
+    sales_status_data = sales_df.groupby('status')['amount'].sum().tolist()
+
+    sales_type_labels = sales_df['transaction_type'].unique().tolist()
+    sales_type_data = sales_df.groupby('transaction_type')['amount'].sum().tolist()
+
+    sales_scatter_data = sales_df[['transaction_date', 'amount']].to_dict(orient='records')
+
+    sales_hist_labels = sales_df['amount'].unique().tolist()
+    sales_hist_data = sales_df['amount'].tolist()
+
+    gauge_data = [total_amount]
+
+    payment_method_labels = pay_df['payment_method'].unique().tolist()
+    payment_method_data = pay_df.groupby('payment_method')['amount'].sum().tolist()
+
+    payment_status_labels = pay_df['payment_status'].unique().tolist()
+    payment_status_data = pay_df.groupby('payment_status')['amount'].sum().tolist()
+
+    customer_name_labels = pay_df['customer_name'].unique().tolist()
+    customer_name_data = pay_df.groupby('customer_name')['amount'].sum().tolist()
+
     context = {
         'total_sales': total_sales,
         'total_amount': total_amount,
         'sales_data': sales_data,
-        'sales_trends_html': sales_trends_html,
-        'sales_status_pie_html': sales_status_pie_html,
-        'sales_type_pie_html': sales_type_pie_html,
+        'sales_trends_labels': sales_trends_labels,
+        'sales_trends_data': sales_trends_data,
+        'sales_status_labels': sales_status_labels,
+        'sales_status_data': sales_status_data,
+        'sales_type_labels': sales_type_labels,
+        'sales_type_data': sales_type_data,
+        'sales_scatter_data': sales_scatter_data,
+        'sales_hist_labels': sales_hist_labels,
+        'sales_hist_data': sales_hist_data,
+        'gauge_data': gauge_data,
+        'payment_method_labels': payment_method_labels,
+        'payment_method_data': payment_method_data,
+        'payment_status_labels': payment_status_labels,
+        'payment_status_data': payment_status_data,
+        'customer_name_labels': customer_name_labels,
+        'customer_name_data': customer_name_data,
     }
-    
+
     return render(request, 'vendor_dashboard.html', context)
 
 def editBankUploadViaForm(request, acc_id):
@@ -526,38 +601,94 @@ def search_invoice_id(request):
 
 @login_required(login_url='/')
 @user_is_approver
+# def homepage(request):
+#     payment_transactions = []
+#     vendor_info = BankDetails.objects.all()
+#     processed_dep = ProcessedDeposits.objects.all()
+#     vendors = [vendor.vendor_id for vendor in vendor_info]
+#     processed = [processed.invoiceid for processed in processed_dep]
+#     payment_transactions_raw = ms_session.query(appym).filter(appym.IDVEND.in_(vendors),
+#                                                               not_(appym.IDINVC.in_(processed))).order_by(
+#         appym.CNTBTCH.desc()).all()
+#     batch_list = [batch.CNTBTCH for batch in payment_transactions_raw]
+#     data = ms_session.query(aptcr).filter(aptcr.CNTBTCH.in_(batch_list)).order_by(aptcr.CNTBTCH.desc()).all()
+#     for payment, record in zip(payment_transactions_raw, data):
+#         transactions = {
+#             'IDINVC': (payment.IDINVC).strip(),
+#             'DATERMIT': payment.DATERMIT,
+#             'AMTPAYM': payment.AMTPAYM,
+#             'IDVEND': (payment.IDVEND).strip(),
+#             'REFERENCE': (record.TEXTRMIT).strip()
+
+#         }
+#         payment_transactions.append(transactions)
+
+#     paginator = Paginator(payment_transactions, 20)
+#     page_number = request.GET.get('page')
+#     page_obj = paginator.get_page(page_number)
+#     context = {
+#         'transaction_info': page_obj,
+#         'vendor_info': vendor_info,
+#     }
+
+#     return render(request, 'homepage.html', context)
 def homepage(request):
     payment_transactions = []
+    
+    # Retrieve vendor and processed invoice data
     vendor_info = BankDetails.objects.all()
     processed_dep = ProcessedDeposits.objects.all()
-    vendors = [vendor.vendor_id for vendor in vendor_info]
-    processed = [processed.invoiceid for processed in processed_dep]
-    payment_transactions_raw = ms_session.query(appym).filter(appym.IDVEND.in_(vendors),
-                                                              not_(appym.IDINVC.in_(processed))).order_by(
-        appym.CNTBTCH.desc()).all()
+    
+    vendors = list(BankDetails.objects.values_list('vendor_id', flat=True))
+    processed = list(ProcessedDeposits.objects.values_list('invoiceid', flat=True))
+
+    # Retrieve unprocessed transactions
+    payment_transactions_raw = (
+        ms_session.query(appym.IDINVC, appym.DATERMIT, appym.AMTPAYM, appym.IDVEND, appym.CNTBTCH)
+        .filter(appym.IDVEND.in_(vendors), appym.IDINVC.notin_(processed))
+        .order_by(appym.CNTBTCH.desc())
+        .all()
+    )
+
+    # Extract batch IDs
     batch_list = [batch.CNTBTCH for batch in payment_transactions_raw]
-    data = ms_session.query(aptcr).filter(aptcr.CNTBTCH.in_(batch_list)).order_by(aptcr.CNTBTCH.desc()).all()
-    for payment, record in zip(payment_transactions_raw, data):
-        transactions = {
-            'IDINVC': (payment.IDINVC).strip(),
-            'DATERMIT': payment.DATERMIT,
-            'AMTPAYM': payment.AMTPAYM,
-            'IDVEND': (payment.IDVEND).strip(),
-            'REFERENCE': (record.TEXTRMIT).strip()
 
-        }
-        payment_transactions.append(transactions)
+    # Retrieve corresponding records from aptcr
+    data = (
+        ms_session.query(aptcr.CNTBTCH, aptcr.TEXTRMIT)
+        .filter(aptcr.CNTBTCH.in_(batch_list))
+        .order_by(aptcr.CNTBTCH.desc())
+        .all()
+    )
 
+    # Process data into dictionary
+    if len(payment_transactions_raw) == len(data):
+        for payment, record in zip(payment_transactions_raw, data):
+            transactions = {
+                'IDINVC': payment.IDINVC.strip(),
+                'DATERMIT': payment.DATERMIT.strftime('%Y-%m-%d'),
+                'AMTPAYM': float(payment.AMTPAYM),
+                'IDVEND': payment.IDVEND.strip(),
+                'REFERENCE': record.TEXTRMIT.strip()
+            }
+            payment_transactions.append(transactions)
+
+    # Paginate transactions
     paginator = Paginator(payment_transactions, 20)
-    page_number = request.GET.get('page')
+    page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
+
+    # Pass to template
     context = {
         'transaction_info': page_obj,
         'vendor_info': vendor_info,
     }
-
+    print(payment_transactions)
     return render(request, 'homepage.html', context)
 
+def transaction_summary_view(request):
+    transactions = TransactionSummary.objects.all()  # Fetch all records from the view
+    return render(request, "transaction_summary.html", {"transactions": transactions})
 
 @login_required(login_url="/")
 @user_is_approver

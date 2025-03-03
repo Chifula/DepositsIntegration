@@ -7,6 +7,7 @@ import sqlalchemy as sqlalchemy
 from sqlalchemy import MetaData
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
+import pandas as pd
 
 Base = automap_base()
 
@@ -42,6 +43,22 @@ def get_ip_address(request):
         ip = request.META.get('REMOTE_ADDR')
     return ip
 
+def fetch_data(query):
+    return pd.read_sql(query, engine)
+
+def get_transactions():
+    query = """
+    SELECT transaction_id, vendor_id, vendor_name, transaction_date, amount, status, transaction_type, processed_by
+    FROM transactions_table
+    """
+    return fetch_data(query)
+
+def get_vendor_info():
+    query = """
+    SELECT vendor_id, vendor_name, contact_name, contact_email, contact_phone
+    FROM vendor_table
+    """
+    return fetch_data(query)
 
 def send_error_mail(resp_json):
     sender = 'mupumamgtsdev@gmail.com'

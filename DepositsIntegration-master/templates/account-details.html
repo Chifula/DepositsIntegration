@@ -10,6 +10,7 @@
             {% endfor %}
         {% endif %}
 
+        
         <div class="formbold-form-wrapper">
             <form action="{% url 'webapp:upload-bank-details' %}" method="POST" id="bankDetailsForm">
                 {% csrf_token %}
@@ -94,7 +95,7 @@
                 <button class="formbold-btn" id="submit" disabled>Save
                 </button>
             </form>
-            <!--- <p class="or"></p>
+            - <p class="or"></p>
             <form action="{% url 'webapp:upload-bank-details-csv' %}" enctype="multipart/form-data" method="POST">
                 {% csrf_token %}
                 <div class="formbold-mb-3">
@@ -110,7 +111,7 @@
                 </div>
                 <button class="formbold-btn">Upload</button>
                 <a href="{% url 'webapp:bank-details-template' %}" class="formbold-btn2">Export Template</a>
-            </form>-->
+            </form>
         </div>
     </div>
 {% endblock %}

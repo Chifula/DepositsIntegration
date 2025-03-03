@@ -3,6 +3,9 @@ from django.urls import path, include
 from django.views.generic import TemplateView
 from django.contrib import admin
 from .views import vendor_dashboard
+from .models import TransactionSummary
+from .views import transaction_summary
+from .views import payment_summary
 
 from . import views
 
@@ -34,4 +37,6 @@ urlpatterns = [
     path('bank_details/upload/loadBanks/',views.loadBankList),
     path('bank_details/delete/<str:acc_no>/', views.delete_vendor, name='delete'),
     path('vendor-dashboard/', vendor_dashboard, name='vendor_dashboard'),
+    path("transaction-summary/", transaction_summary, name="transaction_summary"),
+    path("paymentsummary/", payment_summary, name="payment_summary"),
 ]
