@@ -11,60 +11,64 @@
         <h1 class="text-primary">Vendor Dashboard</h1>
         <button class="btn btn-primary" id="toggleTableButton">Toggle Table</button>
     </div>
+    
     <p class="fw-bold">Total Sales: {{ total_sales }}</p>
     <p class="fw-bold">Total Amount: {{ total_amount }}</p>
     
     <div class="row">
         <div class="col-md-6">
             <h2 class="mt-4">Sales Trends</h2>
-            <canvas id="salesTrendsChart" style="height: 250px;"></canvas>
+            <canvas id="salesTrendsChart"></canvas>
         </div>
         <div class="col-md-6">
             <h2 class="mt-4">Sales Distribution by Status</h2>
-            <canvas id="salesStatusPieChart" style="height: 250px;"></canvas>
+            <canvas id="salesStatusPieChart" class="w-70 mx-auto"></canvas>
         </div>
     </div>
     
+    
     <div class="row">
         <div class="col-md-6">
-            <h2 class="mt-4">Sales Distribution by Transaction Type</h2>
-            <canvas id="salesTypePieChart" style="height: 250px;"></canvas>
+            <h2 class="mt-4">Sales by Transaction Type</h2>
+            <canvas id="salesTypePieChart"class="w-70 mx-auto"></canvas>
+        <div class="row">
+
+       
+    </div>  
         </div>
         <div class="col-md-6">
             <h2 class="mt-4">Sales Over Time</h2>
-            <canvas id="salesScatterPlot" style="height: 250px;"></canvas>
+            <canvas id="salesScatterPlot"style="height: 250px"></canvas>
         </div>
-    </div>
     
-    <div class="row">
-        <div class="col-md-6">
-            <h2 class="mt-4">Sales Amount Distribution</h2>
-            <canvas id="salesHistChart" style="height: 250px;"></canvas>
-        </div>
-        <div class="col-md-6">
-            <h2 class="mt-4">Total Sales</h2>
-            <canvas id="gaugeChart" style="height: 250px;"></canvas>
-        </div>
+    <div class="col-md-6">
+        <h2 class="mt-4">Sales Amount Distribution</h2>
+        <canvas id="salesHistChart" style="height: 250px;"></canvas>
     </div>
-    
+
+
+    <div class="col-md-6">
+        <h2 class="mt-4">Total Sales</h2>
+        <canvas id="gaugeChart" class="w-65 mx-auto"></canvas>
+    </div>
     <div class="row">
         <div class="col-md-6">
             <h2 class="mt-4">Payment Methods Comparison</h2>
-            <canvas id="paymentMethodChart" style="height: 250px;"></canvas>
+            <canvas id="paymentMethodChart" style="height: 200px;"></canvas>
         </div>
         <div class="col-md-6">
             <h2 class="mt-4">Payment Status Distribution</h2>
-            <canvas id="paymentStatusPieChart" style="height: 250px;"></canvas>
+            <canvas id="paymentStatusPieChart" class="w-70 mx-auto"></canvas>
         </div>
-    </div>
-    
-    <div class="row">
-        <div class="col-md-12">
-            <h2 class="mt-4">Customer Name Comparison</h2>
-            <canvas id="customerNameChart" style="height: 250px;"></canvas>
+
+        <div class="row">
+            <div class="col-md-12">
+                <h2 class="mt-4">Customer Name Comparison</h2>
+                <canvas id="customerNameChart"style="height: 300px;"></canvas>
+            </div>
+            
         </div>
-    </div>
-    
+
     <div class="d-flex justify-content-between align-items-center mt-4">
         <h2>Sales Data</h2>
         <button class="btn btn-info" id="toggleInfoButton">
@@ -76,7 +80,7 @@
     </div>
     
     <div id="transactionTable" class="table-responsive" style="display: none;">
-        <table class="table table-hover mt-3">
+        <table id="transactionsTable" class="table table-hover mt-3">
             <thead class="table-dark">
                 <tr>
                     <th>Invoice ID</th>
@@ -124,6 +128,9 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         $(document).ready(function() {
             $('#toggleTableButton').click(function() {
@@ -134,123 +141,201 @@
                 $('#transactionTable').toggle();
             });
 
-            // Initialize charts using Chart.js
-            var salesTrendsCtx = document.getElementById('salesTrendsChart').getContext('2d');
-            var salesStatusPieCtx = document.getElementById('salesStatusPieChart').getContext('2d');
-            var salesTypePieCtx = document.getElementById('salesTypePieChart').getContext('2d');
-            var salesScatterCtx = document.getElementById('salesScatterPlot').getContext('2d');
-            var salesHistCtx = document.getElementById('salesHistChart').getContext('2d');
-            var gaugeCtx = document.getElementById('gaugeChart').getContext('2d');
-            var paymentMethodCtx = document.getElementById('paymentMethodChart').getContext('2d');
-            var paymentStatusPieCtx = document.getElementById('paymentStatusPieChart').getContext('2d');
-            var customerNameCtx = document.getElementById('customerNameChart').getContext('2d');
+            // Initialize DataTables
+            $('#transactionsTable').DataTable({
+                "pageLength": 15,
+                "searching": true
+            });
 
-            // Example data for charts
-            var salesTrendsData = {
+            // Initialize Lucide icons
+            lucide.createIcons();
+
+            // Toggle button icon
+            const toggleButton = document.getElementById("toggleTableButton");
+            if (toggleButton) {
+                let isMenu = true;
+                toggleButton.addEventListener("click", function () {
+                    isMenu = !isMenu;
+                    toggleButton.innerHTML = isMenu 
+                        ? '<i data-lucide="menu" class="h-6 w-6 text-gray-700"></i>' 
+                        : '<i data-lucide="x" class="h-6 w-6 text-red-500"></i>';
+                    lucide.createIcons(); // Refresh Icons
+                });
+            }
+
+            // // Toggle info button icon
+            // const toggleInfoButton = document.getElementById("toggleInfoButton"); 
+            // if (toggleInfoButton) {
+            //     let isInfo = true;
+            //     toggleInfoButton.addEventListener("click", function () {
+            //         isInfo = !isInfo;
+            //         toggleInfoButton.innerHTML = isInfo 
+            //             ? '<i data-lucide="info-circle" class="h-6 w-6 text-gray-700"></i>' 
+            //             : '<i data-lucide="x" class="h-6 w-6 text-red-500"></i>';
+            //         lucide.createIcons(); // Refresh Icons
+            //     });
+            // }  
+             // Chart.js Configurations
+        function createChart(ctxId, chartType, chartData) {
+            let ctx = document.getElementById(ctxId);
+            if (ctx) {
+                return new Chart(ctx.getContext('2d'), {
+                    type: chartType,
+                    data: chartData,
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+        }
+        
+        // Chart.js Configurations
+        var salesTrendsCtx = document.getElementById('salesTrendsChart').getContext('2d');
+        var salesStatusPieCtx = document.getElementById('salesStatusPieChart').getContext('2d');
+        var salesTypePieCtx = document.getElementById('salesTypePieChart').getContext('2d');
+        var salesScatterCtx = document.getElementById('salesScatterPlot').getContext('2d');
+        var customerNameCtx = document.getElementById('customerNameChart').getContext('2d');
+        var salesHistCtx = document.getElementById('salesHistChart').getContext('2d');
+        var gaugeCtx = document.getElementById('gaugeChart').getContext('2d');
+        var paymentMethodCtx = document.getElementById('paymentMethodChart').getContext('2d');
+        var paymentStatusPieCtx = document.getElementById('paymentStatusPieChart').getContext('2d');
+       
+
+        var salesTrendsChart = new Chart(salesTrendsCtx, {
+            type: 'line',
+            data: {
                 labels: {{ sales_trends_labels|safe }},
                 datasets: [{
                     label: 'Sales Trends',
                     data: {{ sales_trends_data|safe }},
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
                     borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    fill: false
                 }]
-            };
+            }
+        });
 
-            var salesStatusPieData = {
+        var salesStatusPieChart = new Chart(salesStatusPieCtx, {
+            type: 'pie',
+            data: {
                 labels: {{ sales_status_labels|safe }},
                 datasets: [{
-                    label: 'Sales Status',
                     data: {{ sales_status_data|safe }},
-                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
-                    hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
                 }]
-            };
+            }
+        });
 
-            var salesTypePieData = {
+        var salesTypePieChart = new Chart(salesTypePieCtx, {
+            type: 'pie',
+            data: {
                 labels: {{ sales_type_labels|safe }},
                 datasets: [{
-                    label: 'Sales Type',
                     data: {{ sales_type_data|safe }},
-                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
-                    hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
                 }]
-            };
+            }
+        });
 
-            var salesScatterData = {
+        var salesScatterPlot = new Chart(salesScatterCtx, {
+            type: 'scatter',
+            data: {
                 datasets: [{
                     label: 'Sales Over Time',
                     data: {{ sales_scatter_data|safe }},
                     backgroundColor: '#0B0B45',
                     borderColor: '#417690',
-                    showLine: true,
-                    fill: false
+                    showLine: true
                 }]
-            };
+            }
+        });
 
-            var salesHistData = {
+        var customerNameChart = new Chart(customerNameCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ customer_name_labels|safe }},
+                datasets: [{
+                    label: 'Customer Comparison',
+                    data: {{ customer_name_data|safe }},
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(255, 159, 64, 1)',
+                    borderWidth: 1
+                }]
+            }
+        });
+
+        var salesHistCtx = document.getElementById('salesHistChart').getContext('2d');
+        var salesHistChart = new Chart(salesHistCtx, {
+            type: 'bar',
+            data: {
                 labels: {{ sales_hist_labels|safe }},
                 datasets: [{
                     label: 'Sales Amount Distribution',
                     data: {{ sales_hist_data|safe }},
                     backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderColor: 'rgba(255, 159, 64, 1)',
                     borderWidth: 1
                 }]
-            };
+            }
+        });
 
-            var gaugeData = {
+        var gaugeCtx = document.getElementById('gaugeChart').getContext('2d');
+        var gaugeChart = new Chart(gaugeCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Total Sales'],
                 datasets: [{
-                    label: 'Total Sales',
-                    data: {{ gauge_data|safe }},
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
+                    data: [{{ total_sales }}],
+                    backgroundColor: ['#FF6384']
                 }]
-            };
+            }
+        }); 
 
-            var paymentMethodData = {
+        var paymentMethodCtx = document.getElementById('paymentMethodChart').getContext('2d');
+        var paymentMethodChart = new Chart(paymentMethodCtx, {
+            type: 'bar',
+            data: {
                 labels: {{ payment_method_labels|safe }},
                 datasets: [{
-                    label: 'Payment Methods',
+                    label: 'Payment Methods Comparison',
                     data: {{ payment_method_data|safe }},
                     backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderColor: 'rgba(255, 159, 64, 1)',
                     borderWidth: 1
                 }]
-            };
+            }
+        });
 
-            var paymentStatusPieData = {
+        var paymentStatusPieCtx = document.getElementById('paymentStatusPieChart').getContext('2d');
+        var paymentStatusPieChart = new Chart(paymentStatusPieCtx, {
+            type: 'pie',
+            data: {
                 labels: {{ payment_status_labels|safe }},
                 datasets: [{
-                    label: 'Payment Status',
                     data: {{ payment_status_data|safe }},
-                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
-                    hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
                 }]
-            };
-
-            var customerNameData = {
-                labels: {{ customer_name_labels|safe }},
-                datasets: [{
-                    label: 'Customer Name',
-                    data: {{ customer_name_data|safe }},
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                }]
-            };
-
-            // Create charts
-            new Chart(salesTrendsCtx, { type: 'bar', data: salesTrendsData });
-            new Chart(salesStatusPieCtx, { type: 'pie', data: salesStatusPieData });
-            new Chart(salesTypePieCtx, { type: 'pie', data: salesTypePieData });
-            new Chart(salesScatterCtx, { type: 'scatter', data: salesScatterData });
-            new Chart(salesHistCtx, { type: 'bar', data: salesHistData });
-            new Chart(gaugeCtx, { type: 'doughnut', data: gaugeData });
-            new Chart(paymentMethodCtx, { type: 'bar', data: paymentMethodData });
-            new Chart(paymentStatusPieCtx, { type: 'pie', data: paymentStatusPieData });
-            new Chart(customerNameCtx, { type: 'bar', data: customerNameData });
+            }
         });
-    </script>
+
+        var salesTypePolarCtx = document.getElementById('salesTypePolarChart').getContext('2d');
+        var salesTypePolarChart = new Chart(salesTypePolarCtx, {
+            type: 'polarArea',
+            data: {
+                labels: {{ sales_type_labels|safe }},
+                datasets: [{
+                    data: {{ sales_type_data|safe }},
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+                }]
+            }
+        });
+        function scrollToTopOrBottom() {
+        if (window.scrollY > 100) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+    }
+    });
+
+
+</script>
 {% endblock %}

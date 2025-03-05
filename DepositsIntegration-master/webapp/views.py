@@ -351,7 +351,7 @@ def vendor_dashboard(request):
         'processed_amount', 'processed_t_date', 'vendorname', 'transaction_type'
     )))
     pay_df['amount'] = pay_df['amount'].astype(float)
-    pay_df['transaction_date'] = pd.to_datetime(pay_df['transaction_date'])
+    # pay_df['transaction_date'] = pd.to_datetime(pay_df['transaction_date'])
 
     # Convert sales data to a DataFrame
     sales_df = pd.DataFrame(list(sales_data.values('vendorid', 'amount', 'status', 'transaction_type', 'transaction_date')))
