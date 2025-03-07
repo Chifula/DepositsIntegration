@@ -33,7 +33,7 @@
         </div>
         <div class="col-md-6">
             <h2 class="mt-4">Sales Over Time</h2>
-            <div id="salesScatterPlot" style="height: 250px;"></div>
+            <div id="salesScatterPlot" style="height: 300px;"></div>
         </div>
     </div>
     
@@ -278,18 +278,26 @@
             }]);
 
             Plotly.newPlot('salesScatterPlot', [{
-                x: salesScatterLabels,
-                y: salesScatterData,
+                x: salesScatterData.map(item => item.vendor_name),
+                y: salesScatterData.map(item => item.date_last_modified),
                 mode: 'markers',
                 type: 'scatter',
                 marker: { color: '#0B0B45' }
             }]);
-
+          // Assuming you're passing `totalSales` and `salesTrendsData` to the frontend correctly
             Plotly.newPlot('gaugeChart', [{
                 type: 'indicator',
                 mode: 'gauge+number',
-                value: totalSales,
-                gauge: { axis: { range: [0, Math.max(...salesTrendsData)] } }
+                value: totalSales,  // This is your total sales value
+                gauge: {
+                    axis: { range: [0, Math.max(...salesTrendsData)] },  // Set dynamic range based on sales trends
+                    steps: [
+                        { range: [0, Math.max(...salesTrendsData) * 0.25], color: 'lightgray' },
+                        { range: [Math.max(...salesTrendsData) * 0.25, Math.max(...salesTrendsData) * 0.5], color: 'gray' },
+                        { range: [Math.max(...salesTrendsData) * 0.5, Math.max(...salesTrendsData) * 0.75], color: 'darkgray' },
+                        { range: [Math.max(...salesTrendsData) * 0.75, Math.max(...salesTrendsData)], color: 'black' }
+                    ]
+                }
             }]);
 
             Plotly.newPlot('customerNameChart', [{

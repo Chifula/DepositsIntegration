@@ -20,9 +20,7 @@ from .helpers import *
 from .myauthBackend import UserAuthBackend
 from .permissions import user_is_approver, user_is_support_staff
 from .services import *
-from .models import ProcessedDeposits, BankDetails, Users
-from .models import TransactionSummary
-from .models import PaymentSummary
+from .models import ProcessedDeposits, BankDetails, Users, VendorInfo, TransactionSummary, PaymentSummary
 import requests
 import pandas as pd
 import plotly.express as px
@@ -245,14 +243,6 @@ def get_search_results(request):
         return JsonResponse({'message': f'An error occurred while processing your request {e}'}, status=500)
 
 
-def transaction_summary(request):
-    transactions = TransactionSummary.objects.all()  # Fetch all transaction summary data
-    return render(request, "transactions.html", {"transactions": transactions})
-
-def payment_summary(request):
-    transactions = PaymentSummary.objects.all()  # Fetch all transaction summary data
-    return render(request, "payments.html", {"transactions": transactions})
-
 # Function to fetch data from the database
 def fetch_data():
     with connection.cursor() as cursor:
@@ -338,12 +328,22 @@ def bankUploadViaForm(request):
         return render(request, 'account-details.html', {'form': form})
     except Exception as e:
         print(e)
+        return HttpResponse(f'Error saving bank details, Try again later', status=500)  
+
+def transaction_summary(request):
+    transactions = TransactionSummary.objects.all()  # Fetch all transaction summary data
+    return render(request, "transactions.html", {"transactions": transactions})
+
+def payment_summary(request):
+    transactions = PaymentSummary.objects.all()  # Fetch all transaction summary data
+    return render(request, "payments.html", {"transactions": transactions})
 
 
 def vendor_dashboard(request):
     # Fetch sales data and other information for vendors
     sales_data = ProcessedDeposits.objects.all()
     payment_data = PaymentSummary.objects.all()
+    vendor_info = VendorInfo.objects.all()
 
     # Convert payment data to a DataFrame
     pay_df = pd.DataFrame(list(payment_data.values(
@@ -353,6 +353,9 @@ def vendor_dashboard(request):
     pay_df['amount'] = pay_df['amount'].astype(float)
     # pay_df['transaction_date'] = pd.to_datetime(pay_df['transaction_date'])
 
+    vendordf = pd.DataFrame(list(vendor_info.values('vendor_name', 'audit_time', 'audit_user', 'short_name', 'date_last_modified')))
+    vendordf['audit_time'] = vendordf['audit_time'].astype(float)
+
     # Convert sales data to a DataFrame
     sales_df = pd.DataFrame(list(sales_data.values('vendorid', 'amount', 'status', 'transaction_type', 'transaction_date')))
     sales_df['amount'] = sales_df['amount'].astype(float)
@@ -360,7 +363,7 @@ def vendor_dashboard(request):
     # Calculate sales trends and other metrics
     total_sales = sales_df['vendorid'].nunique()
     total_amount = sales_df['amount'].sum()
-
+    
     # Prepare data for charts
     sales_trends_labels = sales_df['vendorid'].tolist()
     sales_trends_data = sales_df['amount'].tolist()
@@ -371,12 +374,11 @@ def vendor_dashboard(request):
     sales_type_labels = sales_df['transaction_type'].unique().tolist()
     sales_type_data = sales_df.groupby('transaction_type')['amount'].sum().tolist()
 
-    sales_scatter_data = sales_df[['transaction_date', 'amount']].to_dict(orient='records')
+    # Use vendordf for sales scatter data
+    sales_scatter_data = vendordf[['vendor_name', 'date_last_modified']].to_dict(orient='records')
 
     sales_hist_labels = sales_df['amount'].unique().tolist()
     sales_hist_data = sales_df['amount'].tolist()
-
-    gauge_data = [total_amount]
 
     payment_method_labels = pay_df['payment_method'].unique().tolist()
     payment_method_data = pay_df.groupby('payment_method')['amount'].sum().tolist()
@@ -384,8 +386,16 @@ def vendor_dashboard(request):
     payment_status_labels = pay_df['payment_status'].unique().tolist()
     payment_status_data = pay_df.groupby('payment_status')['amount'].sum().tolist()
 
-    customer_name_labels = pay_df['customer_name'].unique().tolist()
-    customer_name_data = pay_df.groupby('customer_name')['amount'].sum().tolist()
+    customer_name_labels = vendordf['vendor_name'].unique().tolist()
+    customer_name_data = vendordf.groupby('vendor_name')['audit_time'].sum().sort_values(ascending=False).head(10).tolist()
+    customer_name_labels = vendordf.groupby('vendor_name')['audit_time'].sum().sort_values(ascending=False).head(10).index.tolist()
+
+    # Prepare KPI data
+    kpi_data = {
+        'total_sales': total_sales,
+        'total_amount': total_amount,
+        'average_sales': total_amount / total_sales if total_sales > 0 else 0,
+    }
 
     context = {
         'total_sales': total_sales,
@@ -400,13 +410,13 @@ def vendor_dashboard(request):
         'sales_scatter_data': sales_scatter_data,
         'sales_hist_labels': sales_hist_labels,
         'sales_hist_data': sales_hist_data,
-        'gauge_data': gauge_data,
         'payment_method_labels': payment_method_labels,
         'payment_method_data': payment_method_data,
         'payment_status_labels': payment_status_labels,
         'payment_status_data': payment_status_data,
         'customer_name_labels': customer_name_labels,
         'customer_name_data': customer_name_data,
+        'kpi_data': kpi_data,
     }
 
     return render(request, 'vendor_dashboard.html', context)
