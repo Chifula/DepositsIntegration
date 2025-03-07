@@ -26,31 +26,28 @@
         </div>
     </div>
     
-    
     <div class="row">
         <div class="col-md-6">
             <h2 class="mt-4">Sales by Transaction Type</h2>
-            <canvas id="salesTypePieChart"class="w-70 mx-auto"></canvas>
-        <div class="row">
-
-       
-    </div>  
+            <div id="salesTypePieChart" class="w-70 mx-auto"></div>
         </div>
         <div class="col-md-6">
             <h2 class="mt-4">Sales Over Time</h2>
-            <canvas id="salesScatterPlot"style="height: 250px"></canvas>
+            <div id="salesScatterPlot" style="height: 250px;"></div>
         </div>
+    </div>
     
-    <div class="col-md-6">
-        <h2 class="mt-4">Sales Amount Distribution</h2>
-        <canvas id="salesHistChart" style="height: 250px;"></canvas>
+    <div class="row">
+        <div class="col-md-6">
+            <h2 class="mt-4">Sales Amount Distribution</h2>
+            <canvas id="salesHistChart" style="height: 250px;"></canvas>
+        </div>
+        <div class="col-md-6">
+            <h2 class="mt-4">Total Sales</h2>
+            <div id="gaugeChart" class="w-65 mx-auto"></div>
+        </div>
     </div>
-
-
-    <div class="col-md-6">
-        <h2 class="mt-4">Total Sales</h2>
-        <canvas id="gaugeChart" class="w-65 mx-auto"></canvas>
-    </div>
+    
     <div class="row">
         <div class="col-md-6">
             <h2 class="mt-4">Payment Methods Comparison</h2>
@@ -60,15 +57,15 @@
             <h2 class="mt-4">Payment Status Distribution</h2>
             <canvas id="paymentStatusPieChart" class="w-70 mx-auto"></canvas>
         </div>
-
-        <div class="row">
-            <div class="col-md-12">
-                <h2 class="mt-4">Customer Name Comparison</h2>
-                <canvas id="customerNameChart"style="height: 300px;"></canvas>
-            </div>
-            
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <h2 class="mt-4">Customer Name Comparison</h2>
+            <div id="customerNameChart" style="height: 300px;"></div>
         </div>
-
+    </div>
+    
     <div class="d-flex justify-content-between align-items-center mt-4">
         <h2>Sales Data</h2>
         <button class="btn btn-info" id="toggleInfoButton">
@@ -131,6 +128,26 @@
     <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    
+    {{ sales_trends_labels|json_script:"sales_trends_labels" }}
+    {{ sales_trends_data|json_script:"sales_trends_data" }}
+    {{ sales_status_labels|json_script:"sales_status_labels" }}
+    {{ sales_status_data|json_script:"sales_status_data" }}
+    {{ sales_type_labels|json_script:"sales_type_labels" }}
+    {{ sales_type_data|json_script:"sales_type_data" }}
+    {{ sales_scatter_labels|json_script:"sales_scatter_labels" }}
+    {{ sales_scatter_data|json_script:"sales_scatter_data" }}
+    {{ customer_name_labels|json_script:"customer_name_labels" }}
+    {{ customer_name_data|json_script:"customer_name_data" }}
+    {{ sales_hist_labels|json_script:"sales_hist_labels" }}
+    {{ sales_hist_data|json_script:"sales_hist_data" }}
+    {{ total_sales|json_script:"total_sales" }}
+    {{ payment_method_labels|json_script:"payment_method_labels" }}
+    {{ payment_method_data|json_script:"payment_method_data" }}
+    {{ payment_status_labels|json_script:"payment_status_labels" }}
+    {{ payment_status_data|json_script:"payment_status_data" }}
+
     <script>
         $(document).ready(function() {
             $('#toggleTableButton').click(function() {
@@ -144,7 +161,13 @@
             // Initialize DataTables
             $('#transactionsTable').DataTable({
                 "pageLength": 15,
-                "searching": true
+                "searching": true,
+                "language": {
+                    "paginate": {
+                        "previous": "<button class='btn btn-outline-secondary'><i class='bi bi-chevron-left'></i></button>",
+                        "next": "<button class='btn btn-outline-secondary'><i class='bi bi-chevron-right'></i></button>"
+                    }
+                }
             });
 
             // Initialize Lucide icons
@@ -163,179 +186,118 @@
                 });
             }
 
-            // // Toggle info button icon
-            // const toggleInfoButton = document.getElementById("toggleInfoButton"); 
-            // if (toggleInfoButton) {
-            //     let isInfo = true;
-            //     toggleInfoButton.addEventListener("click", function () {
-            //         isInfo = !isInfo;
-            //         toggleInfoButton.innerHTML = isInfo 
-            //             ? '<i data-lucide="info-circle" class="h-6 w-6 text-gray-700"></i>' 
-            //             : '<i data-lucide="x" class="h-6 w-6 text-red-500"></i>';
-            //         lucide.createIcons(); // Refresh Icons
-            //     });
-            // }  
-             // Chart.js Configurations
-        function createChart(ctxId, chartType, chartData) {
-            let ctx = document.getElementById(ctxId);
-            if (ctx) {
-                return new Chart(ctx.getContext('2d'), {
-                    type: chartType,
-                    data: chartData,
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
-            }
-        }
-        
-        // Chart.js Configurations
-        var salesTrendsCtx = document.getElementById('salesTrendsChart').getContext('2d');
-        var salesStatusPieCtx = document.getElementById('salesStatusPieChart').getContext('2d');
-        var salesTypePieCtx = document.getElementById('salesTypePieChart').getContext('2d');
-        var salesScatterCtx = document.getElementById('salesScatterPlot').getContext('2d');
-        var customerNameCtx = document.getElementById('customerNameChart').getContext('2d');
-        var salesHistCtx = document.getElementById('salesHistChart').getContext('2d');
-        var gaugeCtx = document.getElementById('gaugeChart').getContext('2d');
-        var paymentMethodCtx = document.getElementById('paymentMethodChart').getContext('2d');
-        var paymentStatusPieCtx = document.getElementById('paymentStatusPieChart').getContext('2d');
-       
+            // Load data from JSON script tags
+            var salesTrendsLabels = JSON.parse(document.getElementById('sales_trends_labels').textContent);
+            var salesTrendsData = JSON.parse(document.getElementById('sales_trends_data').textContent);
+            var salesStatusLabels = JSON.parse(document.getElementById('sales_status_labels').textContent);
+            var salesStatusData = JSON.parse(document.getElementById('sales_status_data').textContent);
+            var salesTypeLabels = JSON.parse(document.getElementById('sales_type_labels').textContent);
+            var salesTypeData = JSON.parse(document.getElementById('sales_type_data').textContent);
+            var salesScatterLabels = JSON.parse(document.getElementById('sales_scatter_labels').textContent);
+            var salesScatterData = JSON.parse(document.getElementById('sales_scatter_data').textContent);
+            var customerNameLabels = JSON.parse(document.getElementById('customer_name_labels').textContent);
+            var customerNameData = JSON.parse(document.getElementById('customer_name_data').textContent);
+            var salesHistLabels = JSON.parse(document.getElementById('sales_hist_labels').textContent);
+            var salesHistData = JSON.parse(document.getElementById('sales_hist_data').textContent);
+            var totalSales = JSON.parse(document.getElementById('total_sales').textContent);
+            var paymentMethodLabels = JSON.parse(document.getElementById('payment_method_labels').textContent);
+            var paymentMethodData = JSON.parse(document.getElementById('payment_method_data').textContent);
+            var paymentStatusLabels = JSON.parse(document.getElementById('payment_status_labels').textContent);
+            var paymentStatusData = JSON.parse(document.getElementById('payment_status_data').textContent);
 
-        var salesTrendsChart = new Chart(salesTrendsCtx, {
-            type: 'line',
-            data: {
-                labels: {{ sales_trends_labels|safe }},
-                datasets: [{
-                    label: 'Sales Trends',
-                    data: {{ sales_trends_data|safe }},
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    fill: false
-                }]
-            }
+            // Chart.js Configurations
+            var salesTrendsChart = new Chart(document.getElementById('salesTrendsChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: salesTrendsLabels,
+                    datasets: [{
+                        label: 'Sales Trends',
+                        data: salesTrendsData,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        fill: false
+                    }]
+                }
+            });
+
+            var salesStatusPieChart = new Chart(document.getElementById('salesStatusPieChart').getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: salesStatusLabels,
+                    datasets: [{
+                        data: salesStatusData,
+                        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+                    }]
+                }
+            });
+
+            var salesHistChart = new Chart(document.getElementById('salesHistChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: salesHistLabels,
+                    datasets: [{
+                        label: 'Sales Amount Distribution',
+                        data: salesHistData,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(255, 159, 64, 1)',
+                        borderWidth: 1
+                    }]
+                }
+            });
+
+            var paymentMethodChart = new Chart(document.getElementById('paymentMethodChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: paymentMethodLabels,
+                    datasets: [{
+                        label: 'Payment Methods Comparison',
+                        data: paymentMethodData,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(255, 159, 64, 1)',
+                        borderWidth: 1
+                    }]
+                }
+            });
+
+            var paymentStatusPieChart = new Chart(document.getElementById('paymentStatusPieChart').getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: paymentStatusLabels,
+                    datasets: [{
+                        data: paymentStatusData,
+                        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+                    }]
+                }
+            });
+
+            // Plotly Configurations
+            Plotly.newPlot('salesTypePieChart', [{
+                labels: salesTypeLabels,
+                values: salesTypeData,
+                type: 'pie'
+            }]);
+
+            Plotly.newPlot('salesScatterPlot', [{
+                x: salesScatterLabels,
+                y: salesScatterData,
+                mode: 'markers',
+                type: 'scatter',
+                marker: { color: '#0B0B45' }
+            }]);
+
+            Plotly.newPlot('gaugeChart', [{
+                type: 'indicator',
+                mode: 'gauge+number',
+                value: totalSales,
+                gauge: { axis: { range: [0, Math.max(...salesTrendsData)] } }
+            }]);
+
+            Plotly.newPlot('customerNameChart', [{
+                x: customerNameLabels,
+                y: customerNameData,
+                type: 'bar',
+                marker: { color: 'rgba(75, 192, 192, 0.2)' }
+            }]);
         });
-
-        var salesStatusPieChart = new Chart(salesStatusPieCtx, {
-            type: 'pie',
-            data: {
-                labels: {{ sales_status_labels|safe }},
-                datasets: [{
-                    data: {{ sales_status_data|safe }},
-                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
-                }]
-            }
-        });
-
-        var salesTypePieChart = new Chart(salesTypePieCtx, {
-            type: 'pie',
-            data: {
-                labels: {{ sales_type_labels|safe }},
-                datasets: [{
-                    data: {{ sales_type_data|safe }},
-                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
-                }]
-            }
-        });
-
-        var salesScatterPlot = new Chart(salesScatterCtx, {
-            type: 'scatter',
-            data: {
-                datasets: [{
-                    label: 'Sales Over Time',
-                    data: {{ sales_scatter_data|safe }},
-                    backgroundColor: '#0B0B45',
-                    borderColor: '#417690',
-                    showLine: true
-                }]
-            }
-        });
-
-        var customerNameChart = new Chart(customerNameCtx, {
-            type: 'bar',
-            data: {
-                labels: {{ customer_name_labels|safe }},
-                datasets: [{
-                    label: 'Customer Comparison',
-                    data: {{ customer_name_data|safe }},
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(255, 159, 64, 1)',
-                    borderWidth: 1
-                }]
-            }
-        });
-
-        var salesHistCtx = document.getElementById('salesHistChart').getContext('2d');
-        var salesHistChart = new Chart(salesHistCtx, {
-            type: 'bar',
-            data: {
-                labels: {{ sales_hist_labels|safe }},
-                datasets: [{
-                    label: 'Sales Amount Distribution',
-                    data: {{ sales_hist_data|safe }},
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(255, 159, 64, 1)',
-                    borderWidth: 1
-                }]
-            }
-        });
-
-        var gaugeCtx = document.getElementById('gaugeChart').getContext('2d');
-        var gaugeChart = new Chart(gaugeCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Total Sales'],
-                datasets: [{
-                    data: [{{ total_sales }}],
-                    backgroundColor: ['#FF6384']
-                }]
-            }
-        }); 
-
-        var paymentMethodCtx = document.getElementById('paymentMethodChart').getContext('2d');
-        var paymentMethodChart = new Chart(paymentMethodCtx, {
-            type: 'bar',
-            data: {
-                labels: {{ payment_method_labels|safe }},
-                datasets: [{
-                    label: 'Payment Methods Comparison',
-                    data: {{ payment_method_data|safe }},
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(255, 159, 64, 1)',
-                    borderWidth: 1
-                }]
-            }
-        });
-
-        var paymentStatusPieCtx = document.getElementById('paymentStatusPieChart').getContext('2d');
-        var paymentStatusPieChart = new Chart(paymentStatusPieCtx, {
-            type: 'pie',
-            data: {
-                labels: {{ payment_status_labels|safe }},
-                datasets: [{
-                    data: {{ payment_status_data|safe }},
-                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
-                }]
-            }
-        });
-
-        var salesTypePolarCtx = document.getElementById('salesTypePolarChart').getContext('2d');
-        var salesTypePolarChart = new Chart(salesTypePolarCtx, {
-            type: 'polarArea',
-            data: {
-                labels: {{ sales_type_labels|safe }},
-                datasets: [{
-                    data: {{ sales_type_data|safe }},
-                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
-                }]
-            }
-        });
-        function scrollToTopOrBottom() {
-        if (window.scrollY > 100) {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        } else {
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        }
-    }
-    });
-
-
-</script>
+    </script>
 {% endblock %}

@@ -61,6 +61,13 @@ class ProcessedDeposits(models.Model):
     timestamp = models.DateTimeField(auto_now=True)
     processed_by = models.CharField(max_length=255)
 
+class VendorInfo(models.Model):
+    vendor_name = models.CharField(max_length=255)
+    audit_time = models.DateTimeField()
+    audit_user = models.CharField(max_length=255)
+    short_name = models.CharField(max_length=255)
+    date_last_modified = models.DateTimeField()
+
 class TransactionSummary(models.Model):
     transaction_id = models.CharField(max_length=50, primary_key=True)
     payment_transaction_date = models.DateField()  # Renamed from transaction_date
