@@ -361,7 +361,7 @@ def vendor_dashboard(request):
     sales_df['amount'] = sales_df['amount'].astype(float)
 
     # Calculate sales trends and other metrics
-    total_sales = sales_df['vendorid'].nunique()
+    total_sales = sales_df['amount'].nunique()
     total_amount = sales_df['amount'].sum()
     
     # Prepare data for charts

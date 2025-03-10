@@ -43,7 +43,7 @@
             <canvas id="salesHistChart" style="height: 250px;"></canvas>
         </div>
         <div class="col-md-6">
-            <h2 class="mt-4">Total Sales</h2>
+            <h2 class="mt-4">KPIs</h2>
             <div id="gaugeChart" class="w-65 mx-auto"></div>
         </div>
     </div>
@@ -143,6 +143,8 @@
     {{ sales_hist_labels|json_script:"sales_hist_labels" }}
     {{ sales_hist_data|json_script:"sales_hist_data" }}
     {{ total_sales|json_script:"total_sales" }}
+    {{ total_amount|json_script:"total_amount" }}
+    {{ average_sales|json_script:"average_sales" }}
     {{ payment_method_labels|json_script:"payment_method_labels" }}
     {{ payment_method_data|json_script:"payment_method_data" }}
     {{ payment_status_labels|json_script:"payment_status_labels" }}
@@ -193,13 +195,14 @@
             var salesStatusData = JSON.parse(document.getElementById('sales_status_data').textContent);
             var salesTypeLabels = JSON.parse(document.getElementById('sales_type_labels').textContent);
             var salesTypeData = JSON.parse(document.getElementById('sales_type_data').textContent);
-            var salesScatterLabels = JSON.parse(document.getElementById('sales_scatter_labels').textContent);
             var salesScatterData = JSON.parse(document.getElementById('sales_scatter_data').textContent);
             var customerNameLabels = JSON.parse(document.getElementById('customer_name_labels').textContent);
             var customerNameData = JSON.parse(document.getElementById('customer_name_data').textContent);
             var salesHistLabels = JSON.parse(document.getElementById('sales_hist_labels').textContent);
             var salesHistData = JSON.parse(document.getElementById('sales_hist_data').textContent);
             var totalSales = JSON.parse(document.getElementById('total_sales').textContent);
+            var totalAmount = JSON.parse(document.getElementById('total_amount').textContent);
+            var averageSales = JSON.parse(document.getElementById('average_sales').textContent);
             var paymentMethodLabels = JSON.parse(document.getElementById('payment_method_labels').textContent);
             var paymentMethodData = JSON.parse(document.getElementById('payment_method_data').textContent);
             var paymentStatusLabels = JSON.parse(document.getElementById('payment_status_labels').textContent);
@@ -284,21 +287,6 @@
                 type: 'scatter',
                 marker: { color: '#0B0B45' }
             }]);
-          // Assuming you're passing `totalSales` and `salesTrendsData` to the frontend correctly
-            Plotly.newPlot('gaugeChart', [{
-                type: 'indicator',
-                mode: 'gauge+number',
-                value: totalSales,  // This is your total sales value
-                gauge: {
-                    axis: { range: [0, Math.max(...salesTrendsData)] },  // Set dynamic range based on sales trends
-                    steps: [
-                        { range: [0, Math.max(...salesTrendsData) * 0.25], color: 'lightgray' },
-                        { range: [Math.max(...salesTrendsData) * 0.25, Math.max(...salesTrendsData) * 0.5], color: 'gray' },
-                        { range: [Math.max(...salesTrendsData) * 0.5, Math.max(...salesTrendsData) * 0.75], color: 'darkgray' },
-                        { range: [Math.max(...salesTrendsData) * 0.75, Math.max(...salesTrendsData)], color: 'black' }
-                    ]
-                }
-            }]);
 
             Plotly.newPlot('customerNameChart', [{
                 x: customerNameLabels,
@@ -306,6 +294,52 @@
                 type: 'bar',
                 marker: { color: 'rgba(75, 192, 192, 0.2)' }
             }]);
+
+             // Gauge Chart for KPIs
+             Plotly.newPlot('gaugeChart', [ {
+                type: 'indicator',
+                mode: 'gauge+number',
+                value: totalAmount,
+                title: { text: "Total Amount" },
+                gauge: {
+                    axis: { range: [0, Math.max(...salesTrendsData)] },
+                    steps: [
+                        { range: [0, Math.max(...salesTrendsData) * 0.25], color: 'lightgreen' },
+                        { range: [Math.max(...salesTrendsData) * 0.25, Math.max(...salesTrendsData) * 0.5], color: 'yellow' },
+                        { range: [Math.max(...salesTrendsData) * 0.5, Math.max(...salesTrendsData) * 0.75], color: 'orange' },
+                        { range: [Math.max(...salesTrendsData) * 0.75, Math.max(...salesTrendsData)], color: 'red' }
+                    ]
+                }   
+            //     }, {
+            //     type: 'indicator',
+            //     mode: 'gauge+number',
+            //     value: totalSales,
+            //     title: { text: "Total Sales" },
+            //     gauge: {
+            //         axis: { range: [0, Math.max(...salesTrendsData)] },
+            //         steps: [
+            //             { range: [0, Math.max(...salesTrendsData) * 0.25], color: 'lightgreen' },
+            //             { range: [Math.max(...salesTrendsData) * 0.25, Math.max(...salesTrendsData) * 0.5], color: 'yellow' },
+            //             { range: [Math.max(...salesTrendsData) * 0.5, Math.max(...salesTrendsData) * 0.75], color: 'orange' },
+            //             { range: [Math.max(...salesTrendsData) * 0.75, Math.max(...salesTrendsData)], color: 'red' }
+            //         ]
+            //     }
+            // }, {
+            //     type: 'indicator',
+            //     mode: 'gauge+number',
+            //     value: averageSales,
+            //     title: { text: "Average Sales" },
+            //     gauge: {
+            //         axis: { range: [0, Math.max(...salesTrendsData)] },
+            //         steps: [
+            //             { range: [0, Math.max(...salesTrendsData) * 0.25], color: 'lightgreen' },
+            //             { range: [Math.max(...salesTrendsData) * 0.25, Math.max(...salesTrendsData) * 0.5], color: 'yellow' },
+            //             { range: [Math.max(...salesTrendsData) * 0.5, Math.max(...salesTrendsData) * 0.75], color: 'orange' },
+            //             { range: [Math.max(...salesTrendsData) * 0.75, Math.max(...salesTrendsData)], color: 'red' }
+            //         ]
+            //     }
+            }
+        ]);
         });
     </script>
 {% endblock %}

@@ -10,7 +10,7 @@
       {% if bank_details.has_previous %}
       <a id="ajax_paginator" href="?page={{ bank_details.previous_page_number }}" class="prev">Prev</a>
       {% endif %}
-    </span>
+      </span>
       <span id="page_no">
         <div class="d-inline-block">
           {% for i in bank_details.paginator.page_range %}
