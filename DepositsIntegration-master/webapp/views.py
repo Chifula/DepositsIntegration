@@ -351,14 +351,16 @@ def vendor_dashboard(request):
         'processed_amount', 'processed_t_date', 'vendorname', 'transaction_type'
     )))
     pay_df['amount'] = pay_df['amount'].astype(float)
-    # pay_df['transaction_date'] = pd.to_datetime(pay_df['transaction_date'])
+    pay_df['transaction_date'] = pd.to_datetime(pay_df['transaction_date']).dt.date
 
     vendordf = pd.DataFrame(list(vendor_info.values('vendor_name', 'audit_time', 'audit_user', 'short_name', 'date_last_modified')))
+    vendordf['date_last_modified'] = pd.to_datetime(vendordf['date_last_modified'], format='%Y-%m-%d %H:%M:%S')
     vendordf['audit_time'] = vendordf['audit_time'].astype(float)
 
     # Convert sales data to a DataFrame
-    sales_df = pd.DataFrame(list(sales_data.values('vendorid', 'amount', 'status', 'transaction_type', 'transaction_date')))
+    sales_df = pd.DataFrame(list(sales_data.values('vendorid', 'amount', 'status', 'transaction_type',  'transaction_date')))
     sales_df['amount'] = sales_df['amount'].astype(float)
+    
 
     # Calculate sales trends and other metrics
     total_sales = sales_df['amount'].nunique()
@@ -366,6 +368,7 @@ def vendor_dashboard(request):
     
     # Prepare data for charts
     sales_trends_labels = sales_df['vendorid'].tolist()
+
     sales_trends_data = sales_df['amount'].tolist()
 
     sales_status_labels = sales_df['status'].unique().tolist()
@@ -377,7 +380,7 @@ def vendor_dashboard(request):
     # Use vendordf for sales scatter data
     sales_scatter_data = vendordf[['vendor_name', 'date_last_modified']].to_dict(orient='records')
 
-    sales_hist_labels = sales_df['amount'].unique().tolist()
+    sales_hist_labels = sales_df['vendorid'].unique().tolist()
     sales_hist_data = sales_df['amount'].tolist()
 
     payment_method_labels = pay_df['payment_method'].unique().tolist()

@@ -8285,16 +8285,16 @@ textarea.form-control {
   .btn.btn-primary {
     background: #1089ff !important;
     border: 1px solid #1089ff !important;
-    color: #fff !important; }
+    color: #1d3c5e !important; }
     .btn.btn-primary:hover {
       border: 1px solid #1089ff;
       background: transparent;
-      color: #1089ff; }
+      color: #1d3c5e; }
     .btn.btn-primary.btn-outline-primary {
       border: 1px solid #1089ff;
       background: transparent;
-      color: #1089ff; }
+      color: #1d3c5e; }
       .btn.btn-primary.btn-outline-primary:hover {
         border: 1px solid transparent;
         background: #1089ff;
-        color: #fff; }
+        color: #1d3c5e; }

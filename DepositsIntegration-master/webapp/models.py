@@ -66,7 +66,9 @@ class VendorInfo(models.Model):
     audit_time = models.DecimalField(max_digits=15, decimal_places=2)
     audit_user = models.CharField(max_length=255)
     short_name = models.CharField(max_length=255)
-    date_last_modified = models.DecimalField(max_digits=15, decimal_places=2)
+    date_last_modified = models.DateTimeField()
+    #vendor_id = models.CharField(max_length=255)
+    # change date from decimal to datefeild
 
 class TransactionSummary(models.Model):
     transaction_id = models.CharField(max_length=50, primary_key=True)
